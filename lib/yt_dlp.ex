@@ -3,13 +3,19 @@ defmodule YtDlp do
   yt-dlp related functions.
   """
 
+  require Logger
+
   @doc """
   Runs yt-dlp with the `-g` argument, returns the outputted playlist url.
   Can only return one playlist, returns error if it encounters non-one number
   of playlists.
   """
   def fetch_playlist_url(video_url, format \\ "301") do
-    case System.cmd(Path.join(:code.priv_dir(:video_stream), "yt-dlp"), [
+    yt_dlp_path = Path.join(:code.priv_dir(:video_stream), "yt-dlp")
+
+    Logger.debug("Running: \"#{yt_dlp_path}\" \"#{video_url}\" -f \"#{format}\" -g")
+
+    case System.cmd(yt_dlp_path, [
            video_url,
            "-f",
            format,
