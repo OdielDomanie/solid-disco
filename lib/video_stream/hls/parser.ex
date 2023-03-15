@@ -25,18 +25,31 @@ defmodule VideoStream.HLS.Parser do
   """
   @spec segment_info(m3u_data) :: [segment]
   def segment_info(m3u) do
-    for segment <- m3u.segments, reduce: {[], {m3u.seq, m3u.time}} do
-      {segments, {seq, time}} ->
-        calced_segment = %{
-          path: segment.path,
-          seq: seq,
-          time: time,
-          duration: segment.duration,
-          expiry: get_expiry(segment.path)
-        }
+    # Get the info of individual segments from the parsed m3u data.
+    # The time data needs to be calculated within as well.
+    segment_calc = fn segment, prev_seg ->
+      {seq_new, time_new} =
+        case prev_seg do
+          nil ->
+            {m3u.seq, m3u.time}
 
-        {[calced_segment | segments], {seq + 1, DateTime.add(time, segment.duration)}}
+          prev_seg ->
+            {
+              prev_seg.seq + 1,
+              prev_seg.time |> DateTime.add(round(segment.duration * 1.0e6), :microsecond)
+            }
+        end
+
+      %{
+        path: segment.path,
+        seq: seq_new,
+        time: time_new,
+        duration: segment.duration,
+        expiry: get_expiry(segment.path)
+      }
     end
+
+    Enum.scan(m3u.segments, nil, segment_calc)
   end
 
   # Parse the Youtube url to get the expiry time.

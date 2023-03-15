@@ -33,7 +33,7 @@ defmodule VideoStream.HLS.SafeReqAdapter do
 
         headers? = Keyword.get(safe_opts, :headers?)
 
-        if !!headers? && headers?.(headers_all) do
+        if !headers? or headers?.(headers_all) do
           {status, headers_all, body}
         else
           throw({:bad_header, headers_all})
@@ -45,7 +45,7 @@ defmodule VideoStream.HLS.SafeReqAdapter do
 
         body? = Keyword.get(safe_opts, :body?)
 
-        if !!body? && body?.(body_all) do
+        if !body? or body?.(body_all) do
           {status, headers, body_all}
         else
           throw({:bad_body, body_all})
@@ -56,11 +56,11 @@ defmodule VideoStream.HLS.SafeReqAdapter do
            Finch.stream(
              finch_request,
              finch_name,
-             {nil, [], []},
+             {nil, [], <<>>},
              fun,
              finch_options
            ) do
-      %{status: status, headers: headers, body: body}
+      {:ok, %{status: status, headers: headers, body: body}}
     end
   end
 
@@ -90,7 +90,7 @@ defmodule VideoStream.HLS.SafeReqAdapter do
           {request, exception}
       end
     catch
-      error -> {request, RuntimeError.exception(error)}
+      error -> {request, RuntimeError.exception(inspect(error))}
     end
   end
 

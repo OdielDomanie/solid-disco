@@ -9,6 +9,6 @@ defmodule VideoStream do
   end
 
   def video_stream(vid_url, fmt_string, :dash) do
-    Dash.vid_stream(vid_url, fmt_string)
+    # Dash.vid_stream(vid_url, fmt_string)
   end
 end
