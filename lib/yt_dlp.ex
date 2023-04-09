@@ -5,6 +5,9 @@ defmodule YtDlp do
 
   require Logger
 
+  @spec fetch_playlist_url(String.t(), String.t()) ::
+          {:error, {:multiple_playlists | pos_integer, binary() | list(binary())}}
+          | {:ok, binary()}
   @doc """
   Runs yt-dlp with the `-g` argument, returns the outputted playlist url.
   Can only return one playlist, returns error if it encounters non-one number
@@ -41,6 +44,25 @@ defmodule YtDlp do
     case fetch_playlist_url(video_url, format) do
       {:ok, playlist_url} -> playlist_url
       error -> raise inspect(error)
+    end
+  end
+
+  def fetch_mpd(video_url, _format_string) do
+    yt_dlp_path = Path.join(:code.priv_dir(:video_stream), "yt-dlp")
+
+    Logger.debug("Running: \"#{yt_dlp_path}\" \"#{video_url}\" --live-from-start -g")
+
+    case System.cmd(yt_dlp_path, [
+           video_url,
+           "--live-from-start",
+           "-g"
+         ]) do
+      # First check return code.
+      {playlist_urls, 0} ->
+        {:ok, String.split(playlist_urls) |> hd()}
+
+      {output, err_code} ->
+        {:error, {err_code, output}}
     end
   end
 end

@@ -12,18 +12,10 @@ defmodule VideoStream.HLS.Parser do
           version: integer()
         }
 
-  @type segment :: %{
-          path: String.t(),
-          seq: integer(),
-          time: DateTime.t(),
-          duration: float(),
-          expiry: DateTime.t() | nil | (error :: any())
-        }
-
   @doc """
   Calculate and return a list of segment metadata.
   """
-  @spec segment_info(m3u_data) :: [segment]
+  @spec segment_info(m3u_data) :: [VideoStream.segment_info()]
   def segment_info(m3u) do
     # Get the info of individual segments from the parsed m3u data.
     # The time data needs to be calculated within as well.
@@ -36,14 +28,15 @@ defmodule VideoStream.HLS.Parser do
           prev_seg ->
             {
               prev_seg.seq + 1,
-              prev_seg.time |> DateTime.add(round(segment.duration * 1.0e6), :microsecond)
+              prev_seg.wctime |> DateTime.add(round(segment.duration * 1.0e6), :microsecond)
             }
         end
 
       %{
-        path: segment.path,
+        url: segment.path,
         seq: seq_new,
-        time: time_new,
+        wctime: time_new,
+        vtime: nil,
         duration: segment.duration,
         expiry: get_expiry(segment.path)
       }

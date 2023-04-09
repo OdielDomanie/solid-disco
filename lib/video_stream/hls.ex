@@ -3,21 +3,22 @@ defmodule VideoStream.HLS do
   Process an HLS stream
   """
   alias VideoStream.HLS.Parser
-  alias VideoStream.HLS.SafeReqAdapter
+  alias VideoStream.Utils.SafeReqAdapter
 
-  @spec vid_stream(binary(), binary()) :: Enum.t()
+  @spec vid_stream(String.t()) :: Enum.t()
   @doc """
   Given the video url and the format string (eg. 301), returns a stream of
   segment data and metadata.
   """
-  def vid_stream(vid_url, format_str) do
+  def vid_stream(m3u_url) do
     Stream.resource(
-      fn -> YtDlp.fetch_playlist_url!({vid_url, format_str}) end,
+      fn -> m3u_url end,
       &next_segments/1,
       &stream_end/1
     )
   end
 
+  @spec next_segments(String.t()) :: {[VideoStream.segment_info()], String.t()}
   def next_segments(m3u_url) do
     # An m3u8 playlist of an HLS stream is probably smaller then 100 kb;
     # just as a sanity check for security.

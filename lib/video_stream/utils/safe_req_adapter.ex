@@ -1,4 +1,4 @@
-defmodule VideoStream.HLS.SafeReqAdapter do
+defmodule VideoStream.Utils.SafeReqAdapter do
   @moduledoc """
   Adapter for `Req` that uses `Finch.stream/5` instead of `Finch.request/3`,
   and throws if header or body is non-conforming before downloading the rest.
