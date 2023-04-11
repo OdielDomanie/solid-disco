@@ -23,7 +23,7 @@ defmodule VideoStreamTest do
                expiry: _expiry
              } = segment_info
 
-      assert Map.get(segment_info, :vtime) or Map.get(segment_info, :wctime)
+      assert Map.get(segment_info, :vtime) || Map.get(segment_info, :wctime)
 
       # Check the magic bytes to confirm it is an mpeg-ts segment.
       segment_list = :binary.bin_to_list(segment)
