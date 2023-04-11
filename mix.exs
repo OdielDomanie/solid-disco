@@ -7,7 +7,9 @@ defmodule VideoStream.MixProject do
       version: "0.1.0",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      compilers: Mix.compilers() ++ [:pip_deps],
+      pip_deps: pip_deps()
     ]
   end
 
@@ -23,7 +25,15 @@ defmodule VideoStream.MixProject do
     [
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:req, "~> 0.3"},
-      {:fast_xml, "~> 1.1"}
+      {:fast_xml, "~> 1.1"},
+      # {:python_ex, git: "git@github.com:OdielDomanie/python_ex.git"}
+      {:python_ex, path: "../python_ex"}
+    ]
+  end
+
+  defp pip_deps do
+    [
+      "yt-dlp"
     ]
   end
 end

@@ -14,16 +14,12 @@ defmodule YtDlp do
   of playlists.
   """
   def fetch_playlist_url(video_url, format \\ "301") do
-    yt_dlp_path = Path.join(:code.priv_dir(:video_stream), "yt-dlp")
+    cmd = yt_dlp_path() ++ [video_url, "-f", format, "-g"]
+    cmd_string = cmd |> Enum.map(fn s -> "\"#{s}\"" end) |> Enum.join(" ")
 
-    Logger.debug("Running: \"#{yt_dlp_path}\" \"#{video_url}\" -f \"#{format}\" -g")
+    Logger.debug("Running: #{cmd_string}")
 
-    case System.cmd(yt_dlp_path, [
-           video_url,
-           "-f",
-           format,
-           "-g"
-         ]) do
+    case System.cmd(hd(cmd), tl(cmd)) do
       # First check return code, then make sure there is only one url.
       {playlist_urls, 0} ->
         case String.split(playlist_urls) do
@@ -48,15 +44,19 @@ defmodule YtDlp do
   end
 
   def fetch_mpd(video_url, _format_string) do
-    yt_dlp_path = Path.join(:code.priv_dir(:video_stream), "yt-dlp")
+    cmd =
+      yt_dlp_path() ++
+        [
+          video_url,
+          "--live-from-start",
+          "-g"
+        ]
 
-    Logger.debug("Running: \"#{yt_dlp_path}\" \"#{video_url}\" --live-from-start -g")
+    cmd_string = cmd |> Enum.map(fn s -> "\"#{s}\"" end) |> Enum.join(" ")
 
-    case System.cmd(yt_dlp_path, [
-           video_url,
-           "--live-from-start",
-           "-g"
-         ]) do
+    Logger.debug("Running: #{cmd_string}")
+
+    case System.cmd(hd(cmd), tl(cmd)) do
       # First check return code.
       {playlist_urls, 0} ->
         {:ok, String.split(playlist_urls) |> hd()}
@@ -64,5 +64,9 @@ defmodule YtDlp do
       {output, err_code} ->
         {:error, {err_code, output}}
     end
+  end
+
+  defp yt_dlp_path do
+    [Python.Server.python_path(), "-m", "yt_dlp"]
   end
 end
