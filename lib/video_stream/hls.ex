@@ -2,6 +2,8 @@ defmodule VideoStream.HLS do
   @moduledoc """
   Process an HLS stream
   """
+  require Logger
+
   alias VideoStream.HLS.Parser
   alias VideoStream.Utils.SafeReqAdapter
 
@@ -26,15 +28,24 @@ defmodule VideoStream.HLS do
 
     resp = Req.get!(m3u_url, adapter: SafeReqAdapter.safe_adapter(body: body_limit))
 
-    segments =
+    # Make sure it returns something
+    [_ | _] =
+      segments =
       resp.body
       |> Parser.parse()
       |> Parser.segment_info()
 
     {
-      for %{path: segment_path} = metadata <- segments do
+      for %{url: segment_path} = metadata <- segments do
+        req =
+          Req.new(
+            url: segment_path,
+            user_agent:
+              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
+          )
+
         {
-          Req.get!(segment_path).body,
+          Req.get!(req).body,
           metadata
         }
       end,

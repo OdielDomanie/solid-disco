@@ -23,8 +23,12 @@ defmodule YtDlp do
       # First check return code, then make sure there is only one url.
       {playlist_urls, 0} ->
         case String.split(playlist_urls) do
-          [playlist_url] -> {:ok, playlist_url}
-          playlist_list -> {:error, {:multiple_playlists, playlist_list}}
+          [playlist_url] ->
+            Logger.debug("Playlist url #{inspect(playlist_url)}")
+            {:ok, playlist_url}
+
+          playlist_list ->
+            {:error, {:multiple_playlists, playlist_list}}
         end
 
       {output, err_code} ->
